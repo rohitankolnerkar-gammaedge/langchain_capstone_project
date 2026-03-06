@@ -1,0 +1,91 @@
+{
+    "timestamp": "2026-03-06T04:56:31.896675",
+    "level": "INFO",
+    "message": "RAG request started",
+    "file": "user_input.py",
+    "function": "question",
+    "line": 32,
+    "question": "what is AI",
+    "user_role": null,
+    "retrieved_docs": null,
+    "retrieval_latency": null,
+    "llm_latency": null,
+    "answer_length": null,
+    "grounded": null,
+    "total_latency": null,
+    "error": null
+}
+{
+    "timestamp": "2026-03-06T04:56:47.251283",
+    "level": "INFO",
+    "message": "Documents retrieved",
+    "file": "user_input.py",
+    "function": "question",
+    "line": 62,
+    "question": "what is AI",
+    "user_role": null,
+    "retrieved_docs": [
+        "temp_upload/extracted/Artificial_Intelligence.pdf",
+        "temp_upload/capstone_test_document.pdf",
+        "temp_upload/capstone_test_document.pdf",
+        "temp_upload/extracted/Blockchain_Technology.pdf",
+        "temp_upload/extracted/Space_Exploration.pdf"
+    ],
+    "retrieval_latency": 15.35424081299999,
+    "llm_latency": null,
+    "answer_length": null,
+    "grounded": null,
+    "total_latency": null,
+    "error": null
+}
+{
+    "timestamp": "2026-03-06T04:57:41.584685",
+    "level": "INFO",
+    "message": "LLM response generated",
+    "file": "user_input.py",
+    "function": "question",
+    "line": 97,
+    "question": null,
+    "user_role": null,
+    "retrieved_docs": null,
+    "retrieval_latency": null,
+    "llm_latency": 54.318308761000026,
+    "answer_length": 439,
+    "grounded": null,
+    "total_latency": null,
+    "error": null
+}
+{
+    "timestamp": "2026-03-06T04:58:30.489821",
+    "level": "INFO",
+    "message": "Grounding validation finished",
+    "file": "user_input.py",
+    "function": "question",
+    "line": 114,
+    "question": null,
+    "user_role": null,
+    "retrieved_docs": null,
+    "retrieval_latency": null,
+    "llm_latency": null,
+    "answer_length": null,
+    "grounded": false,
+    "total_latency": null,
+    "error": null
+}
+{
+    "timestamp": "2026-03-06T04:58:30.489927",
+    "level": "WARNING",
+    "message": "Ungrounded answer detected",
+    "file": "user_input.py",
+    "function": "question",
+    "line": 130,
+    "question": "what is AI",
+    "user_role": null,
+    "retrieved_docs": null,
+    "retrieval_latency": null,
+    "llm_latency": null,
+    "answer_length": null,
+    "grounded": null,
+    "total_latency": null,
+    "error": null
+}
