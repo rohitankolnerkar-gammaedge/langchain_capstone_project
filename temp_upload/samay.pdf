@@ -1,0 +1,225 @@
+COMPANY POLICY MANUAL
+Version: 2026
+Effective Date: January 1, 2026
+Last Reviewed: December 2025
+
+SECTION 1: ORGANIZATION OVERVIEW
+
+Our organization is committed to operational excellence, security,
+regulatory compliance, transparency, and employee well-being.
+This policy manual governs internal conduct, system access,
+data protection, and operational procedures.
+
+All employees, contractors, interns, consultants, and executives
+must comply with this manual. Violations may result in disciplinary
+action including revocation of system access, suspension, or termination.
+
+This manual is classified as Internal. Some sections contain
+Confidential or Restricted information.
+
+SECTION 2: ROLE DEFINITIONS
+
+2.1 Intern
+Interns are temporary employees assisting project teams.
+Interns:
+- May access internal documentation.
+- May access assigned project repositories.
+- May not access payroll, revenue data, or employee records.
+- Must work under direct supervision of a Manager.
+
+2.2 Employee
+Employees are permanent or contractual staff members.
+Employees:
+- Have access to department documentation.
+- May access internal dashboards.
+- May request leave through HR systems.
+- May not access executive financial forecasting reports.
+
+2.3 Manager
+Managers supervise teams and approve operational decisions.
+Managers:
+- Approve leave requests.
+- Review team performance.
+- Access departmental budget summaries.
+- Cannot access company-wide acquisition strategies.
+
+2.4 HR Personnel
+HR manages employee lifecycle processes.
+HR Personnel:
+- Access employee personal data.
+- Manage payroll systems.
+- Maintain medical disclosures.
+- Conduct disciplinary documentation.
+
+2.5 Finance Team
+Finance oversees budgeting and revenue operations.
+Finance:
+- Access financial statements.
+- Manage tax compliance documentation.
+- Maintain vendor payment records.
+- Cannot access medical records.
+
+2.6 Executive Leadership
+Executives define strategic direction.
+Executives:
+- Access strategic financial planning.
+- Access acquisition documents.
+- Access audit reports.
+- May override certain access restrictions under board authorization.
+
+SECTION 3: ROLE-BASED ACCESS CONTROL (RBAC) POLICY
+
+Access is granted based on job role under the principle of least privilege.
+
+All system permissions must:
+- Be approved by department heads.
+- Be reviewed quarterly.
+- Be revoked immediately upon role change or termination.
+
+Access Reviews:
+- Conducted quarterly by IT and HR.
+- Logged for compliance audit.
+- Reviewed by executive leadership annually.
+
+Classification Levels:
+Public – Shareable externally.
+Internal – Restricted to employees.
+Confidential – Sensitive operational data.
+Restricted – Highly sensitive executive/legal material.
+
+SECTION 4: LEAVE POLICY
+
+4.1 Annual Paid Leave
+
+Full-time Employees are entitled to 20 days of paid leave annually.
+Part-time Employees receive prorated leave based on working hours.
+Unused leave may be carried forward up to a maximum of 10 days.
+Carried-forward leave expires after 6 months.
+
+Interns are entitled to 5 days of leave per internship cycle.
+Managers and Executives may be eligible for extended leave
+based on contractual agreements.
+
+4.2 Sick Leave
+
+Employees are entitled to 10 days of paid sick leave annually.
+Medical certification is required for absences exceeding 3 consecutive days.
+Unused sick leave does not carry forward.
+
+4.3 Emergency Leave
+
+Employees may request emergency leave for family or medical emergencies.
+Approval is required from Manager and HR.
+Documentation may be requested in certain cases.
+
+4.4 Maternity and Paternity Leave
+
+Maternity leave entitlement: 26 weeks paid leave.
+Paternity leave entitlement: 15 days paid leave.
+Extended unpaid leave may be granted upon HR approval.
+
+4.5 Leave Approval Process
+
+All leave must be:
+- Requested via HR system.
+- Approved by Manager.
+- Recorded by HR.
+
+Executives must notify the Board for leave exceeding 30 days.
+
+4.6 Unauthorized Leave
+
+Absence without approval for more than 3 consecutive days
+may result in disciplinary action.
+
+SECTION 5: INFORMATION SECURITY POLICY
+
+5.1 Authentication and Password Policy
+
+All employees must use multi-factor authentication (MFA).
+Passwords must:
+- Be at least 12 characters long.
+- Include uppercase, lowercase, numeric, and special characters.
+- Be changed every 90 days.
+- Not reuse last 5 passwords.
+
+Account lockout occurs after 5 failed login attempts.
+
+5.2 Access Control Requirements
+
+Access must:
+- Be role-based.
+- Be approved in writing.
+- Be reviewed quarterly.
+
+Privileged accounts must:
+- Use separate login credentials.
+- Not be used for daily operational tasks.
+- Be monitored by security team.
+
+5.3 Data Handling Policy
+
+Confidential and Restricted documents:
+- Must not be downloaded to personal devices.
+- Must not be shared externally without authorization.
+- Must be encrypted at rest and in transit.
+
+Internal documents:
+- May be shared within company systems.
+- Must not be publicly distributed.
+
+Public documents:
+- May be shared externally after review.
+
+5.4 Remote Work Security
+
+Employees accessing systems remotely must:
+- Use company VPN.
+- Use company-issued devices.
+- Avoid public Wi-Fi unless VPN is active.
+
+Finance systems require IP-based access restrictions.
+HR systems log all access events.
+
+5.5 Incident Reporting
+
+All suspected security incidents must be reported within 2 hours.
+Security team will:
+- Investigate breach.
+- Document findings.
+- Notify executive leadership if necessary.
+
+Failure to report incidents may result in disciplinary action.
+
+5.6 Data Breach Consequences
+
+Unauthorized access to Restricted data:
+- Immediate suspension of access.
+- Internal investigation.
+- Possible termination.
+- Potential legal proceedings.
+
+SECTION 6: DISCIPLINARY ACTIONS
+
+Policy violations may result in:
+- Warning letter.
+- Access revocation.
+- Suspension.
+- Termination.
+
+Repeated violations escalate penalties.
+HR documents all disciplinary actions.
+
+SECTION 7: DATA RETENTION POLICY
+
+Employee records: retain 7 years.
+Financial statements: retain 10 years.
+Audit logs: retain 5 years.
+Restricted legal documents: follow statutory law requirements.
+
+Backup copies:
+- Stored in encrypted storage.
+- Retained for 3 years minimum.
+
+END OF DOCUMENT
+Message Samay Jain

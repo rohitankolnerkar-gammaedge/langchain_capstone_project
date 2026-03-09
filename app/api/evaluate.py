@@ -11,7 +11,7 @@ eval_router = APIRouter()
 @eval_router.post("/evaluate")
 async def evaluate():
 
-    test_data = load_test_data
+    test_data = load_test_data()
     rag_chain = create_rag_chain()
     llm = get_llm()
 
@@ -21,7 +21,7 @@ async def evaluate():
         test_data,
         retriever
     ) 
-    correct_answers, answer_quality = evaluate_answer_quality(
+    total_quality_score, answer_quality = evaluate_answer_quality(
     test_data,
     rag_chain,
     retriever,
@@ -35,6 +35,6 @@ async def evaluate():
         "total_questions": len(test_data),
         "correct_retrievals": correct,
         "retrieval_accuracy": accuracy,
-        "correct_answers": correct_answers,
+        "total_quality_score": total_quality_score,
         "answer_quality": answer_quality
     }

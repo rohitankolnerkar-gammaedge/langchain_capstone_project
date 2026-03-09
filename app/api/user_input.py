@@ -8,15 +8,16 @@ from app.guard_rails.grounding_validator import GroundingValidator
 from app.monitoring.looger import logger
 from app.rag.conversational_buffer import buffer_memory
 load_dotenv()
-
+import json
 from app.rag.retreiver import get_retriever
 import time
 
 from app.monitoring.timing_callback import TimingCallbackHandler
-from app.monitoring.mertics import REQUEST_COUNT,REQUEST_ERRORS,TOTAL_LATENCY,GROUNDED_ANSWERS,UNGROUNDED_ANSWERS,RETRIEVAL_LATENCY
+from app.monitoring.token_callback import TokenUsageCallback
+from app.monitoring.mertics import REQUEST_COUNT,REQUEST_ERRORS,TOTAL_LATENCY,GROUNDED_ANSWERS,UNGROUNDED_ANSWERS,RETRIEVAL_LATENCY,ANS_QUALITY_SCORE,AVG_ANSWER_QUALITY_SCORE
 from opentelemetry.trace import Tracer
 from app.helper.config_opentelemetry import trace
-
+from app.helper.evaluate_ans_quality import evaluate_answer_quality
 input_query = APIRouter()
 
 guard = PIIGuard()
@@ -35,10 +36,9 @@ async def question(question: str = Form(...), role: str = Form(...)):
         "RAG request started",
         extra={"question": question, "role": role}
     )
-
+    history = memory.load_memory_variables({})["chat_history"]
     REQUEST_COUNT.inc()
     total_start = time.perf_counter()
-    history = memory.load_memory_variables({})["chat_history"]
 
     with tracer.start_as_current_span("RAG_Request") as span:
         span.set_attribute("role", role)
@@ -79,8 +79,8 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 )
 
                 chain = create_rag_chain()
-                callback = TimingCallbackHandler()
-                
+                timing_callback = TimingCallbackHandler()
+                token_callback = TokenUsageCallback()
                 llm_start = time.perf_counter()
 
                 response = await chain.ainvoke(
@@ -89,7 +89,7 @@ async def question(question: str = Form(...), role: str = Form(...)):
                         "question": question,
                         "chat_history": history
                     },
-                    config={"callbacks": [callback]}
+                    config={"callbacks": [timing_callback, token_callback]}
                 )
 
                 answer = response
@@ -97,7 +97,7 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 llm_latency = time.perf_counter() - llm_start
 
                 llm_span.set_attribute("answer_length", len(answer))
-
+                
                 logger.info(
                     "LLM response generated",
                     extra={
@@ -107,52 +107,53 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 )
 
             
-            # with tracer.start_as_current_span("Grounding_Validation") as grounding_span:
+            with tracer.start_as_current_span("Grounding_Validation") as grounding_span:
 
-            #     validation = await validator.validate(context_text, answer)
+                validation = await validator.validate(context_text, answer)
 
-            #     grounding_span.set_attribute(
-            #         "grounded", validation["grounded"]
-            #     )
+                grounding_span.set_attribute(
+                    "grounded", validation["grounded"]
+                )
 
-            #     logger.info(
-            #         "Grounding validation finished",
-            #         extra={
-            #             "grounded": validation["grounded"]
-            #         }
-            #     )
+                logger.info(
+                    "Grounding validation finished",
+                    extra={
+                        "grounded": validation["grounded"]
+                    }
+                )
 
-            #     if not validation["grounded"]:
+                if not validation["grounded"]:
 
-            #         UNGROUNDED_ANSWERS.inc()
+                    UNGROUNDED_ANSWERS.inc()
 
-            #         end_time = time.perf_counter()
-            #         total_latency = end_time - total_start
+                    end_time = time.perf_counter()
+                    total_latency = end_time - total_start
 
-            #         TOTAL_LATENCY.observe(total_latency)
+                    TOTAL_LATENCY.observe(total_latency)
 
-            #         logger.warning(
-            #             "Ungrounded answer detected",
-            #             extra={
-            #                 "question": question,
-            #                 "reason": validation["reason"]
-            #             }
-            #         )
+                    logger.warning(
+                        "Ungrounded answer detected",
+                        extra={
+                            "question": question,
+                            "reason": validation["reason"]
+                        }
+                    )
 
-            #         return {
-            #             "error": "Answer not grounded",
-            #             "reason": validation["reason"],
-            #             "retrieved_docs": [
-            #                 doc.page_content for doc in docs
-            #             ]
-            #         }
+                    return {
+                        "error": "Answer not grounded",
+                        "reason": validation["reason"],
+                        "retrieved_docs": [
+                            doc.page_content for doc in docs
+                        ]
+                    }
 
                 GROUNDED_ANSWERS.inc()
+                
 
            
             end_time = time.perf_counter()
             total_latency = end_time - total_start
-
+            
             TOTAL_LATENCY.observe(total_latency)
 
             logger.info(
@@ -166,10 +167,20 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 {"result": response}
             ) 
             print(memory.load_memory_variables({}))
-
-            return {
-                "masked_query": question,
-                "answer": answer
+            parsed_answer = json.loads(answer)
+            context = "\n".join([doc.page_content for doc in docs])
+            score, reason = evaluate_answer_quality(question,parsed_answer["answer"],context)
+            ANS_QUALITY_SCORE.set(score)
+            AVG_ANSWER_QUALITY_SCORE.observe(score)
+            return{"masked_query": question,
+                    
+                  "answer": parsed_answer["answer"],
+                  "sources": parsed_answer["sources"],
+                  "retrieved_docs": [
+                            doc.page_content for doc in docs
+                            ],
+                  "answer_quality_score": score,
+                  "answer_quality_reason": reason         
             }
 
         except Exception as e:

@@ -24,7 +24,7 @@ def get_retriever( role: str):
     print(vector_store.index.describe_index_stats())
     retriever = vector_store.as_retriever(
         search_kwargs={
-        "k": 5,
+        "k": 3,
         "filter": {
             "allowed_roles": {"$in": [role]}
             }

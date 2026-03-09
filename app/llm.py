@@ -1,16 +1,12 @@
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+load_dotenv()
+import os
 
 
-
-def get_llm(
-    temperature: float = 0,
-    max_tokens: int = 256,
-    model_name: str = "phi",):
-    
-    return ChatOllama(
-        model=model_name,
-        temperature=temperature,
-        num_predict=max_tokens,
-        streaming=True,
-        
-    )
+def get_llm():
+        api_key = os.getenv("GROK_API_KEY")
+        return ChatGroq(
+        model="llama-3.1-8b-instant",
+        temperature = 0,
+        api_key=api_key)

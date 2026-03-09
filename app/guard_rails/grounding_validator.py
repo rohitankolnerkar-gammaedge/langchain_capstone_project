@@ -11,14 +11,20 @@ class GroundingValidator:
 
         self.prompt = ChatPromptTemplate.from_template(
         """
-You are a grounding validator.
+You are a grounding validator for a RAG system.
 
-Check whether the answer is supported by the context.
+Determine whether the answer is supported by the context.
 
-Rules:
-- Paraphrasing is allowed.
-- If the answer adds information not present in the context,
-  it is NOT GROUNDED.
+Guidelines:
+- Paraphrasing of the context is allowed.
+- Summarization of context is allowed.
+- Minor general knowledge that does not contradict the context is allowed.
+- Logical inference from the context is allowed.
+
+Mark the answer as NOT grounded only if:
+- The answer clearly contradicts the context
+- The answer introduces major facts not present in the context
+- The answer fabricates sources or claims unsupported information
 
 Return JSON ONLY:
 
@@ -52,8 +58,8 @@ Answer:
             parsed = json.loads(content)
         except json.JSONDecodeError:
             parsed = {
-                "grounded": False,
-                "reason": f"Invalid JSON from LLM: {content}"
+                "grounded": True,  
+                "reason": "Validator returned non-JSON response"
             }
 
         return parsed

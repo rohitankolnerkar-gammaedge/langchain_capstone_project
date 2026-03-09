@@ -53,3 +53,13 @@ RETRIEVAL_ACCURACY = Gauge(
     "rag_retrieval_accuracy",
     "Current retrieval accuracy score"
 )
+PROMPT_TOKENS = Counter("rag_prompt_tokens_total", "Total prompt tokens")
+COMPLETION_TOKENS = Counter("rag_completion_tokens_total", "Total completion tokens")
+ANS_QUALITY_SCORE = Gauge(
+    "rag_answer_quality_score",
+    "Latest quality score from evaluation"
+)
+AVG_ANSWER_QUALITY_SCORE = Histogram(
+    "rag_avg_answer_quality_score",
+    "Average answer quality score from evaluation"
+)
