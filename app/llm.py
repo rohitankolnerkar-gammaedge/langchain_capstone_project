@@ -9,5 +9,5 @@ def get_llm():
         api_key = os.getenv("GROK_API_KEY")
         return ChatGroq(
         model="llama-3.1-8b-instant",
-        temperature = 0,
+        temperature = 1,
         api_key=api_key)
