@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.monitoring.evaluate_retreval import evaluate_retrieval
 from app.rag.retreiver import get_retriever
 from app.monitoring.mertics import RETRIEVAL_ACCURACY
@@ -10,31 +10,36 @@ eval_router = APIRouter()
 
 @eval_router.post("/evaluate")
 async def evaluate():
+    try:
+        test_data = load_test_data
 
-    test_data = load_test_data()
-    rag_chain = create_rag_chain()
-    llm = get_llm()
+        rag_chain = create_rag_chain()
+        llm = get_llm()
 
-    retriever = get_retriever( "admin")
+        retriever = get_retriever("admin")
 
-    correct, accuracy = evaluate_retrieval(
-        test_data,
-        retriever
-    ) 
-    total_quality_score, answer_quality = evaluate_answer_quality(
-    test_data,
-    rag_chain,
-    retriever,
-    llm
-)
+        correct, accuracy = evaluate_retrieval(
+            test_data,
+            retriever
+        )
+        total_quality_score, answer_quality = evaluate_answer_quality(
+            test_data,
+            rag_chain,
+            retriever,
+            llm
+        )
 
+        RETRIEVAL_ACCURACY.set(accuracy)
 
-    RETRIEVAL_ACCURACY.set(accuracy)
+        return {
+            "total_questions": len(test_data),
+            "correct_retrievals": correct,
+            "retrieval_accuracy": accuracy,
+            "total_quality_score": total_quality_score,
+            "answer_quality": answer_quality
+        }
 
-    return {
-        "total_questions": len(test_data),
-        "correct_retrievals": correct,
-        "retrieval_accuracy": accuracy,
-        "total_quality_score": total_quality_score,
-        "answer_quality": answer_quality
-    }
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Evaluation failed") from exc

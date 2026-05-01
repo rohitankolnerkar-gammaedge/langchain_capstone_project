@@ -1,33 +1,60 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
 # Virtual environments
-venv/
 .venv/
+venv/
 env/
 ENV/
 
-# Python cache
+# Python cache and tooling
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pyc.*
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# UV lock file
-uv.lock
-
-# Python build artifacts
+# Build artifacts
 build/
 dist/
 *.egg-info/
 
+# Local IDE and agent state
+.codex
+.codex/
+.vscode/
+
+# Runtime output
+logs/
+temp_upload/
+uploads/
+*.log
+
+# Local document datasets and generated archives
+pdfs/
+*.zip
+!uv.lock
+
+# Local vector stores / databases
+chroma/
+faiss_index/
+*.sqlite
+*.sqlite3
+*.db
+
 # Jupyter checkpoints
 .ipynb_checkpoints/
-
-# Environment variables
-.env
-.env.*
 
 # OS files
 .DS_Store
 Thumbs.db
-logs/
-pdfs/

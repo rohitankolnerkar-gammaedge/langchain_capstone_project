@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capstone RAG Console</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">R</span>
+          <div>
+            <h1>RAG Console</h1>
+            <p>Document grounded assistant</p>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Workspace">
+          <button class="nav-item active" data-target="ask-panel" type="button">Ask</button>
+          <button class="nav-item" data-target="ingest-panel" type="button">Ingest</button>
+          <button class="nav-item" data-target="evaluate-panel" type="button">Evaluate</button>
+          <button class="nav-item" data-target="metrics-panel" type="button">Metrics</button>
+        </nav>
+
+        <div class="connection">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking API</span>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="toolbar" aria-label="Current access context">
+          <div>
+            <p class="eyebrow">Access context</p>
+            <h2 id="workspace-title">Ask your corpus</h2>
+          </div>
+          <div class="context-fields">
+            <label>
+              Role
+              <input id="role-input" name="role" value="admin" autocomplete="off" />
+            </label>
+            <label>
+              User ID
+              <input id="user-input" name="user_id" value="demo-user" autocomplete="off" />
+            </label>
+          </div>
+        </section>
+
+        <section id="ask-panel" class="panel active-panel">
+          <div class="split-layout">
+            <form id="question-form" class="command-surface">
+              <label for="question-input">Question</label>
+              <textarea id="question-input" name="question" rows="7" placeholder="Ask a question about the ingested documents"></textarea>
+              <div class="actions">
+                <button class="primary-button" id="ask-button" type="submit">Ask question</button>
+                <button class="secondary-button" id="clear-answer" type="button">Clear</button>
+              </div>
+            </form>
+
+            <div class="answer-surface" aria-live="polite">
+              <div class="surface-header">
+                <h3>Answer</h3>
+                <span id="quality-pill" class="pill muted">No score</span>
+              </div>
+              <div id="answer-output" class="answer-output empty-state">The grounded answer will appear here.</div>
+              <div class="response-grid">
+                <div>
+                  <h4>Sources</h4>
+                  <ul id="sources-list" class="compact-list"></ul>
+                </div>
+                <div>
+                  <h4>Quality reason</h4>
+                  <p id="quality-reason" class="muted-text">Waiting for a response.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <details class="details-block">
+            <summary>Retrieved document snippets</summary>
+            <div id="retrieved-docs" class="snippet-list"></div>
+          </details>
+        </section>
+
+        <section id="ingest-panel" class="panel">
+          <form id="ingest-form" class="command-surface wide">
+            <div class="drop-zone" id="drop-zone">
+              <input id="file-input" name="file" type="file" accept=".pdf,.zip,application/pdf,application/zip" />
+              <div>
+                <strong id="file-label">Choose a PDF or ZIP file</strong>
+                <span>Files are sent to `/api/input-document` with the current role and user ID.</span>
+              </div>
+            </div>
+
+            <label for="access-input">Access details</label>
+            <input id="access-input" name="access_details" value="admin, reviewer" autocomplete="off" />
+
+            <div class="actions">
+              <button class="primary-button" id="ingest-button" type="submit">Ingest document</button>
+              <button class="secondary-button" id="reset-ingest" type="button">Reset</button>
+            </div>
+          </form>
+
+          <div class="answer-surface">
+            <div class="surface-header">
+              <h3>Ingestion result</h3>
+              <span id="ingest-pill" class="pill muted">Idle</span>
+            </div>
+            <div id="ingest-output" class="json-output empty-state">Upload results will appear here.</div>
+          </div>
+        </section>
+
+        <section id="evaluate-panel" class="panel">
+          <div class="command-surface wide">
+            <div class="surface-header">
+              <div>
+                <h3>Run evaluation</h3>
+                <p class="muted-text">Calls the backend evaluation pipeline using its configured test data.</p>
+              </div>
+              <button class="primary-button" id="evaluate-button" type="button">Run</button>
+            </div>
+          </div>
+          <div id="evaluation-output" class="metric-grid"></div>
+        </section>
+
+        <section id="metrics-panel" class="panel">
+          <div class="command-surface wide">
+            <div class="surface-header">
+              <div>
+                <h3>Prometheus snapshot</h3>
+                <p class="muted-text">Selected values parsed from `/metrics`.</p>
+              </div>
+              <button class="secondary-button" id="refresh-metrics" type="button">Refresh</button>
+            </div>
+          </div>
+          <div id="metrics-output" class="metric-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

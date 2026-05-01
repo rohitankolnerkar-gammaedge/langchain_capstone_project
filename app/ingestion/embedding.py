@@ -1,4 +1,4 @@
-from app.ingestion.emb import embeddings
+from app.ingestion.emb import get_embeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
@@ -9,10 +9,13 @@ load_dotenv()
 
 
 def create_vector_store(chunks):
- 
-    pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    api_key = os.getenv("PINECONE_API_KEY")
+    if not api_key:
+        raise RuntimeError("PINECONE_API_KEY is not configured")
 
-    index_name = "capstone-rag"
+    pc = Pinecone(api_key=api_key)
+
+    index_name = os.getenv("PINECONE_INDEX_NAME", "capstone-rag")
 
    
     existing_indexes = [i.name for i in pc.list_indexes()]
@@ -23,8 +26,8 @@ def create_vector_store(chunks):
             dimension=384,  
             metric="cosine",
             spec=ServerlessSpec(
-                cloud="aws",
-                region="us-east-1"  
+                cloud=os.getenv("PINECONE_CLOUD", "aws"),
+                region=os.getenv("PINECONE_REGION", "us-east-1")
             )
         )
 
@@ -33,8 +36,9 @@ def create_vector_store(chunks):
 
     
     vector_store = PineconeVectorStore(
-    index=index,
-    embedding=embeddings)
+        index=index,
+        embedding=get_embeddings()
+    )
     vector_store.add_documents(chunks)  
     
     return vector_store

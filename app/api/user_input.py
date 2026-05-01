@@ -1,8 +1,7 @@
-from fastapi import FastAPI, UploadFile, Form, APIRouter, HTTPException
+from fastapi import Form, APIRouter, HTTPException
 from dotenv import load_dotenv
 from app.rag.chain import create_rag_chain
 from app.guard_rails.input_guardrails import validate_length
-from app.guard_rails.pii_masking import PIIGuard
 from app.guard_rails.prompt_injection import PromptInjectionGuard
 from app.guard_rails.grounding_validator import GroundingValidator
 from app.monitoring.looger import logger
@@ -11,6 +10,7 @@ load_dotenv()
 import json
 from app.rag.retreiver import get_retriever
 import time
+import re
 
 from app.monitoring.timing_callback import TimingCallbackHandler
 from app.monitoring.token_callback import TokenUsageCallback
@@ -20,17 +20,128 @@ from app.helper.config_opentelemetry import trace
 from app.helper.evaluate_ans_quality import evaluate_answer_quality
 input_query = APIRouter()
 
-guard = PIIGuard()
 detect = PromptInjectionGuard()
-validator = GroundingValidator()
+validator = None
 memory = buffer_memory()
 
 
 tracer: Tracer = trace.get_tracer(__name__)
 
 
+def get_grounding_validator():
+    global validator
+    if validator is None:
+        validator = GroundingValidator()
+    return validator
+
+
+def parse_llm_answer(answer: str):
+    cleaned = answer.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="LLM returned a non-JSON answer"
+        ) from exc
+
+    if "answer" not in parsed:
+        raise HTTPException(status_code=502, detail="LLM answer JSON is missing the answer field")
+
+    parsed.setdefault("sources", [])
+    return parsed
+
+
+def normalize_question(text: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^a-zA-Z0-9\s']", " ", text.lower())).strip()
+
+
+def get_simple_answer(question: str):
+    normalized = normalize_question(question)
+    words = normalized.split()
+
+    if not normalized:
+        return None
+
+    greeting_words = {"hi", "hello", "hey", "namaste"}
+    if len(words) <= 8 and (greeting_words.intersection(words) or "how are you" in normalized):
+        return "Hello! I am doing well and ready to help. You can ask me a general question or ask about the documents you have ingested."
+
+    if normalized in {"thanks", "thank you", "thank you so much", "thx"}:
+        return "You are welcome. I am here whenever you need help."
+
+    if normalized in {"who are you", "what are you", "what can you do", "help"}:
+        return "I am your RAG assistant. I can answer simple chat questions, help with uploaded documents, and show sources when an answer comes from your document context."
+
+    return None
+
+
+def simple_response(question: str, answer: str):
+    memory.save_context(
+        {"input": question},
+        {"result": answer}
+    )
+    return {
+        "masked_query": question,
+        "answer": answer,
+        "sources": [],
+        "retrieved_docs": [],
+        "answer_quality_score": 1,
+        "answer_quality_reason": "General conversation response. No document grounding was required."
+    }
+
+
+def is_rate_limit_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "rate limit" in message or "rate_limit" in message or "429" in message
+
+
+async def validate_grounding_safely(context_text: str, answer: str):
+    try:
+        return await get_grounding_validator().validate(context_text, answer)
+    except Exception as error:
+        logger.warning(
+            "Grounding validation skipped",
+            extra={"error": str(error)}
+        )
+        return {
+            "grounded": True,
+            "reason": "Grounding validation skipped because the evaluator service was unavailable."
+        }
+
+
+def evaluate_quality_safely(question: str, answer: str, context: str):
+    try:
+        return evaluate_answer_quality(question, answer, context)
+    except Exception as error:
+        logger.warning(
+            "Answer quality evaluation skipped",
+            extra={"question": question, "error": str(error)}
+        )
+        return 0, "Answer quality evaluation skipped because the evaluator service was unavailable."
+
+
 @input_query.post("/question")
 async def question(question: str = Form(...), role: str = Form(...)):
+    question = question.strip()
+    role = role.strip()
+
+    if not question or not role:
+        raise HTTPException(status_code=400, detail="question and role are required")
+
+    if not validate_length(question):
+        raise HTTPException(status_code=400, detail="Question is too long")
+
+    if detect.detect(question):
+        raise HTTPException(status_code=400, detail="Prompt injection pattern detected")
+
+    simple_answer = get_simple_answer(question)
+    if simple_answer:
+        REQUEST_COUNT.inc()
+        return simple_response(question, simple_answer)
 
     logger.info(
         "RAG request started",
@@ -109,7 +220,7 @@ async def question(question: str = Form(...), role: str = Form(...)):
             
             with tracer.start_as_current_span("Grounding_Validation") as grounding_span:
 
-                validation = await validator.validate(context_text, answer)
+                validation = await validate_grounding_safely(context_text, answer)
 
                 grounding_span.set_attribute(
                     "grounded", validation["grounded"]
@@ -167,9 +278,9 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 {"result": response}
             ) 
             print(memory.load_memory_variables({}))
-            parsed_answer = json.loads(answer)
+            parsed_answer = parse_llm_answer(answer)
             context = "\n".join([doc.page_content for doc in docs])
-            score, reason = evaluate_answer_quality(question,parsed_answer["answer"],context)
+            score, reason = evaluate_quality_safely(question, parsed_answer["answer"], context)
             ANS_QUALITY_SCORE.set(score)
             AVG_ANSWER_QUALITY_SCORE.observe(score)
             return{"masked_query": question,
@@ -183,6 +294,21 @@ async def question(question: str = Form(...), role: str = Form(...)):
                   "answer_quality_reason": reason         
             }
 
+        except HTTPException:
+            REQUEST_ERRORS.inc()
+            raise
+
+        except RuntimeError as e:
+            REQUEST_ERRORS.inc()
+            logger.error(
+                "Configuration error during RAG pipeline",
+                extra={
+                    "question": question,
+                    "error": str(e)
+                }
+            )
+            raise HTTPException(status_code=503, detail=str(e)) from e
+
         except Exception as e:
 
             REQUEST_ERRORS.inc()
@@ -195,4 +321,10 @@ async def question(question: str = Form(...), role: str = Form(...)):
                 }
             )
 
-            raise e
+            if is_rate_limit_error(e):
+                raise HTTPException(
+                    status_code=429,
+                    detail="The LLM provider is rate limited. Please wait a few seconds and try again."
+                ) from e
+
+            raise HTTPException(status_code=500, detail="RAG pipeline failed") from e

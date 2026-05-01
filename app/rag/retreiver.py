@@ -1,4 +1,4 @@
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from app.ingestion.emb import get_embeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
 import os
@@ -7,21 +7,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_retriever( role: str):
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
+    api_key = os.getenv("PINECONE_API_KEY")
+    if not api_key:
+        raise RuntimeError("PINECONE_API_KEY is not configured")
+
     pc = Pinecone(
-        api_key=os.getenv("PINECONE_API_KEY")
+        api_key=api_key
     )
-    index = pc.Index("capstone-rag")
+    index = pc.Index(os.getenv("PINECONE_INDEX_NAME", "capstone-rag"))
 
     
     vector_store = PineconeVectorStore(
         index=index,
-        embedding=embeddings,
+        embedding=get_embeddings(),
         
     )
-    print(vector_store.index.describe_index_stats())
     retriever = vector_store.as_retriever(
         search_kwargs={
         "k": 3,

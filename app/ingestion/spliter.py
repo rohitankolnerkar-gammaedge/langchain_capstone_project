@@ -1,7 +1,5 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_classic.schema import Document
-
-def split_documents(documents: list[Document]) -> list[Document]:
+def split_documents(documents: list) -> list:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
     
 
     if not documents:

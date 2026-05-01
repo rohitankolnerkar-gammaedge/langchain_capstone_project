@@ -1,13 +1,16 @@
 # pii_guard.py
 
 import re
-import spacy
 from app.guard_rails.pii_pattenns import PII_PATTERNS
 
 
 class PIIGuard:
     def __init__(self):
-        self.nlp = spacy.load("en_core_web_sm")
+        try:
+            import spacy
+            self.nlp = spacy.load("en_core_web_sm")
+        except Exception:
+            self.nlp = None
 
         
         self.ner_labels = set()
@@ -24,6 +27,9 @@ class PIIGuard:
 
  
     def detect_ner_pii(self, text: str):
+        if self.nlp is None:
+            return {}
+
         doc = self.nlp(text)
         detected = {}
 
